@@ -202,7 +202,8 @@ namespace Simconnect_test
                 simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Altitude", "feet", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Heading Degrees Magnetic", "degrees", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(Definitions.Struct1, "Gear Position", "enum", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                //simconnect.AddToDataDefinition(Definitions.Struct1, "Gps Approach Airport Id", null, SIMCONNECT_DATATYPE.STRING256, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "ATC ID", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Gps Approach Airport Id", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
                 // IMPORTANT: register it with the simconnect managed wrapper marshaller 
                 // if you skip this step, you will only receive a uint in the .dwData field. 
@@ -275,7 +276,8 @@ namespace Simconnect_test
                     DisplayText("Alt:   " + s1.altitude);
                     DisplayText("Heading:   " + s1.heading);
                     DisplayText("Gear Position:   " + s1.gearPosition);
-                    //DisplayText("Destination:   " + s1.DestinationAirport);
+                    DisplayText("AtcId:   " + s1.atcId);
+                    DisplayText("Destination:   " + s1.DestinationAirport);
                     break;
 
                 default:
@@ -472,6 +474,9 @@ namespace Simconnect_test
             public double altitude;
             public double heading;
             public double gearPosition;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string atcId;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string DestinationAirport;
         }
         #endregion Structs

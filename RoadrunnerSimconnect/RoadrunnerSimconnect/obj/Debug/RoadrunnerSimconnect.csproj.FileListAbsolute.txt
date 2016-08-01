@@ -8,3 +8,13 @@ c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\S
 c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Simconnect test.exe
 c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Simconnect test.pdb
 c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Microsoft.FlightSimulator.SimConnect.dll
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Debug\Simconnect test.exe.config
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\Simconnect test.exe
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\Simconnect test.pdb
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Debug\Simconnect test.exe
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Debug\Simconnect test.pdb
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Debug\Microsoft.FlightSimulator.SimConnect.dll
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\RoadrunnerSimconnect.csprojResolveAssemblyReference.cache
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\Simconnect_test.Form1.resources
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\Simconnect_test.Properties.Resources.resources
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Debug\RoadrunnerSimconnect.csproj.GenerateResource.Cache
