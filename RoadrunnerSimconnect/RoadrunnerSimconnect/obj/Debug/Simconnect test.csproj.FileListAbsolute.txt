@@ -1,0 +1,10 @@
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Simconnect test.exe.config
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Simconnect test.exe
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Simconnect test.pdb
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\bin\Debug\Microsoft.FlightSimulator.SimConnect.dll
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect test.csprojResolveAssemblyReference.cache
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect_test.Form1.resources
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect_test.Properties.Resources.resources
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect test.csproj.GenerateResource.Cache
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect test.exe
+c:\users\mpc home office\documents\visual studio 2015\Projects\Simconnect test\Simconnect test\obj\Debug\Simconnect test.pdb
