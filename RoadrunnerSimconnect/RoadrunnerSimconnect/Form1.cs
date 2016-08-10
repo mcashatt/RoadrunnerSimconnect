@@ -1,9 +1,7 @@
 ﻿//
 //
-// Managed Client Event sample
+// https://msdn.microsoft.com/en-us/library/cc526980.aspx
 //
-// Respond to Flaps up and down (F5, F6, F7 and F8 keys)
-// Respond to Pitot switch (Shift-H)
 // 
 
 using System;
@@ -24,6 +22,8 @@ namespace Simconnect_test
 
     public partial class Form1 : Form
     {
+
+        public ArduinoControllerMain Acm;
 
         #region Enums
         private enum SimEvents
@@ -120,8 +120,8 @@ namespace Simconnect_test
             SetButtons(true, false);
 
             //Create a new instance of the Arduino controller and connect.
-            Adm = new ArduinoControllerMain();
-            Adm.SetComPort();
+            Acm = new ArduinoControllerMain();
+            Acm.SetComPort();
         }
 
         // Simconnect client will send a win32 message when there is 
@@ -205,6 +205,20 @@ namespace Simconnect_test
                 simconnect.AddToDataDefinition(Definitions.Struct1, "ATC ID", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
                 simconnect.AddToDataDefinition(Definitions.Struct1, "Gps Approach Airport Id", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
+                //FUEL
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center2 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center3 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Main Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Aux Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Tip Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Main Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Aux Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Tip Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External1 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External2 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+
+
                 // IMPORTANT: register it with the simconnect managed wrapper marshaller 
                 // if you skip this step, you will only receive a uint in the .dwData field. 
                 simconnect.RegisterDataDefineStruct<Struct1>(Definitions.Struct1);
@@ -278,6 +292,15 @@ namespace Simconnect_test
                     DisplayText("Gear Position:   " + s1.gearPosition);
                     DisplayText("AtcId:   " + s1.atcId);
                     DisplayText("Destination:   " + s1.DestinationAirport);
+                    DisplayText("Fuel Left Wing:   " + s1.fuelLeftMain);
+                    DisplayText("Fuel Center:   " + s1.fuelCenter);
+                    DisplayText("Fuel Right Wing:   " + s1.fuelRightMain);
+                    DisplayText("Fuel Aux:   " + s1.fuelExternal1);
+
+                    var fuelCenter = Math.Round(s1.fuelCenter/10, MidpointRounding.AwayFromZero)*10; //Decimal.Round((decimal) s1.fuelCenter,0).ToString();
+                    Acm.SendValue(fuelCenter.ToString());
+
+
                     break;
 
                 default:
@@ -447,8 +470,6 @@ namespace Simconnect_test
         // SimConnect object
         private SimConnect simconnect;
 
-        public ArduinoControllerMain Adm;
-
         public List<EventModel> EventModels = new List<EventModel>();
 
         public class EventModel
@@ -478,6 +499,20 @@ namespace Simconnect_test
             public string atcId;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string DestinationAirport;
+
+            //Fuel
+            public double fuelCenter;
+            public double fuelCenter2;
+            public double fuelCenter3;
+            public double fuelLeftMain;
+            public double fuelLeftAux;
+            public double fuelLeftTip;
+            public double fuelRightMain;
+            public double fuelRightAux;
+            public double fuelRightTip;
+            public double fuelExternal1;
+            public double fuelExternal2;
+
         }
         #endregion Structs
 
@@ -489,10 +524,12 @@ namespace Simconnect_test
         #endregion Variables
     }
 
+    #region Arduino
     public class ArduinoControllerMain
     {
         public SerialPort CurrentPort;
         public bool PortFound;
+        public ArduinoControllerMain Adm;
 
         public void SetComPort()
         {
@@ -526,7 +563,7 @@ namespace Simconnect_test
                 buffer[3] = Convert.ToByte(0);
                 buffer[4] = Convert.ToByte(4);
                 var intReturnASCII = 0;
-                var charReturnValue = (char) intReturnASCII;
+                var charReturnValue = (char)intReturnASCII;
                 CurrentPort.Open();
                 CurrentPort.Write(buffer, 0, 5);
                 Thread.Sleep(1000);
@@ -552,7 +589,31 @@ namespace Simconnect_test
                 return false;
             }
         }
+
+        public void SendValue(string msg)
+        {
+            //var setVal = LandingLights ? 255 : 254;
+
+            if (!PortFound)
+            {
+                // adm.SetComPort();
+            }
+
+            var buffer = new byte[5];
+            buffer[0] = Convert.ToByte(16);
+            buffer[1] = Convert.ToByte(127);
+            buffer[2] = Convert.ToByte(4);
+            buffer[3] = Convert.ToByte(msg);
+            buffer[4] = Convert.ToByte(4);
+
+            CurrentPort.Open();
+            CurrentPort.Write(buffer, 0, 5);
+            Thread.Sleep(1000);
+            CurrentPort.Close();
+        }
     }
+    #endregion Arduino
+
 }
 
 // End of sample
