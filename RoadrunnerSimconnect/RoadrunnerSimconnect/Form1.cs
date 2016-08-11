@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.FlightSimulator.SimConnect;
 
@@ -124,6 +125,12 @@ namespace Simconnect_test
             Acm.SetComPort();
         }
 
+        private void ReadVariables()
+        {
+            simconnect.RequestDataOnSimObjectType(DataRequests.Request1, Definitions.Struct1, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+            Thread.Sleep(550);
+        }
+
         // Simconnect client will send a win32 message when there is 
         // a packet to process. ReceiveMessage must be called to
         // trigger the events. This model keeps simconnect processing on the main thread.
@@ -225,6 +232,9 @@ namespace Simconnect_test
 
                 #endregion Add Definitions
                 
+                ReadVariables();
+
+
             }
             catch (COMException ex)
             {
@@ -278,7 +288,7 @@ namespace Simconnect_test
         }
         private void simconnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
-
+            
             switch ((DataRequests)data.dwRequestID)
             {
                 case DataRequests.Request1:
@@ -298,8 +308,12 @@ namespace Simconnect_test
                     DisplayText("Fuel Aux:   " + s1.fuelExternal1);
 
                     var fuelCenter = Math.Round(s1.fuelCenter/10, MidpointRounding.AwayFromZero)*10; //Decimal.Round((decimal) s1.fuelCenter,0).ToString();
+
+                    //TODO: should probably delegate this to another thread.
                     Acm.SendValue(fuelCenter.ToString());
 
+                    //Refresh variables
+                    ReadVariables();
 
                     break;
 
@@ -592,11 +606,9 @@ namespace Simconnect_test
 
         public void SendValue(string msg)
         {
-            //var setVal = LandingLights ? 255 : 254;
-
             if (!PortFound)
             {
-                // adm.SetComPort();
+                //SetComPort();
             }
 
             var buffer = new byte[5];
@@ -608,7 +620,6 @@ namespace Simconnect_test
 
             CurrentPort.Open();
             CurrentPort.Write(buffer, 0, 5);
-            Thread.Sleep(1000);
             CurrentPort.Close();
         }
     }

@@ -67,14 +67,10 @@ void loop() {
   if (Serial.available() == 5) 
   {
     //Read buffer
-    inputByte_0 = Serial.read();
-    delay(100);    
-    inputByte_1 = Serial.read();
-    delay(100);      
-    inputByte_2 = Serial.read();
-    delay(100);      
+    inputByte_0 = Serial.read(); 
+    inputByte_1 = Serial.read();     
+    inputByte_2 = Serial.read();     
     inputByte_3 = Serial.read();
-    delay(100);
     inputByte_4 = Serial.read();   
   }
   //Check for start of Message
