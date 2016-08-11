@@ -8,7 +8,7 @@ There is also an Arduino folder containing sketches for the hardware.
  
 
 #Could use some work:
-- Event & variable reading loop.  Currently, a windows form pops up and I actually click a button to connect to FSX and read the variables.  This is fine for now, but would be thrilled to have some help making that a continuous but efficient loop.
+- ReadVariables() loop.  This works well, but I have noticed sometimes that the Arduino seems not to respond.  Pressing the reset button seems to solve the problem, but that is not a reliable solution.
 
  
 Thanks in advance for any contributions!
