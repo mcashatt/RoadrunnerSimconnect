@@ -6,12 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.FlightSimulator.SimConnect;
 
@@ -19,14 +20,53 @@ using Microsoft.FlightSimulator.SimConnect;
 
 namespace Simconnect_test
 {
-    
-
     public partial class Form1 : Form
     {
-
         public ArduinoControllerMain Acm;
 
+        public bool LedOn;
+
+        private void btnTestSerial_Click(object sender, EventArgs e)
+        {
+            LedOn = !LedOn;
+            Acm.SendValue(LedOn ? "on" : "off");
+        }
+
+        #region Structs
+
+        // This is how you declare a data structure so that 
+        // simconnect knows how to fill it/read it. 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+        private struct Struct1
+        {
+            // this is how you declare a fixed size string 
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] public readonly string title;
+            public readonly double latitude;
+            public readonly double longitude;
+            public readonly double altitude;
+            public readonly double heading;
+            public readonly double gearPosition;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public readonly string atcId;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public readonly string DestinationAirport;
+
+            //Fuel
+            public readonly double fuelCenter;
+            public readonly double fuelCenter2;
+            public readonly double fuelCenter3;
+            public readonly double fuelLeftMain;
+            public readonly double fuelLeftAux;
+            public readonly double fuelLeftTip;
+            public readonly double fuelRightMain;
+            public readonly double fuelRightAux;
+            public readonly double fuelRightTip;
+            public readonly double fuelExternal1;
+            public readonly double fuelExternal2;
+        }
+
+        #endregion Structs
+
         #region Enums
+
         private enum SimEvents
         {
             AileronsLeft,
@@ -98,12 +138,12 @@ namespace Simconnect_test
             Group0
         }
 
-        enum Definitions
+        private enum Definitions
         {
             Struct1
         }
 
-        enum DataRequests
+        private enum DataRequests
         {
             Request1
         }
@@ -122,12 +162,12 @@ namespace Simconnect_test
 
             //Create a new instance of the Arduino controller and connect.
             Acm = new ArduinoControllerMain();
-            Acm.SetComPort();
         }
 
         private void ReadVariables()
         {
-            simconnect.RequestDataOnSimObjectType(DataRequests.Request1, Definitions.Struct1, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+            simconnect.RequestDataOnSimObjectType(DataRequests.Request1, Definitions.Struct1, 0,
+                SIMCONNECT_SIMOBJECT_TYPE.USER);
             Thread.Sleep(550);
         }
 
@@ -173,6 +213,7 @@ namespace Simconnect_test
             try
             {
                 #region Listeners
+
                 //Listen to connect and quit msgs
                 simconnect.OnRecvOpen += simconnect_OnRecvOpen;
                 simconnect.OnRecvQuit += simconnect_OnRecvQuit;
@@ -185,45 +226,66 @@ namespace Simconnect_test
 
                 //Listen to simobject data requests
                 simconnect.OnRecvSimobjectDataBytype += simconnect_OnRecvSimobjectDataBytype;
+
                 #endregion Listeners
 
                 #region Event Subscriptions
 
-                foreach (var simEvent in Enum.GetValues(typeof(SimEvents)))
+                foreach (var simEvent in Enum.GetValues(typeof (SimEvents)))
                 {
                     var eventName = GetEventName((Enum) simEvent);
                     var simconnectEventName = GetSimconnectNameFormat(eventName);
                     SubscribeToEvent((Enum) simEvent, simconnectEventName);
                 }
-                
+
                 #endregion Event Subscriptions
-                
+
                 //Set the group priority
-                simconnect.SetNotificationGroupPriority(NotificationGroups.Group0,SimConnect.SIMCONNECT_GROUP_PRIORITY_HIGHEST);
+                simconnect.SetNotificationGroupPriority(NotificationGroups.Group0,
+                    SimConnect.SIMCONNECT_GROUP_PRIORITY_HIGHEST);
 
                 #region Add Definitions
-                
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Title", null, SIMCONNECT_DATATYPE.STRING256, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Latitude", "degrees", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Longitude", "degrees", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Altitude", "feet", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Heading Degrees Magnetic", "degrees", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Gear Position", "enum", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "ATC ID", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Gps Approach Airport Id", null, SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Title", null, SIMCONNECT_DATATYPE.STRING256, 0.0f,
+                    SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Latitude", "degrees",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Longitude", "degrees",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Altitude", "feet",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Plane Heading Degrees Magnetic", "degrees",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Gear Position", "enum", SIMCONNECT_DATATYPE.FLOAT64,
+                    0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "ATC ID", null, SIMCONNECT_DATATYPE.STRING32, 0.0f,
+                    SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Gps Approach Airport Id", null,
+                    SIMCONNECT_DATATYPE.STRING32, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
                 //FUEL
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center2 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center3 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Main Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Aux Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Tip Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Main Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Aux Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Tip Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External1 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External2 Level", "percent", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center2 Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Center3 Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Main Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Aux Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Left Tip Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Main Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Aux Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank Right Tip Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External1 Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
+                simconnect.AddToDataDefinition(Definitions.Struct1, "Fuel Tank External2 Level", "percent",
+                    SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
 
 
                 // IMPORTANT: register it with the simconnect managed wrapper marshaller 
@@ -231,10 +293,8 @@ namespace Simconnect_test
                 simconnect.RegisterDataDefineStruct<Struct1>(Definitions.Struct1);
 
                 #endregion Add Definitions
-                
+
                 ReadVariables();
-
-
             }
             catch (COMException ex)
             {
@@ -248,7 +308,7 @@ namespace Simconnect_test
             simconnect.AddClientEventToNotificationGroup(NotificationGroups.Group0, simEvent, false);
 
             //Now add to EventModels
-            var eventName = Enum.GetName(typeof(SimEvents), simEvent);
+            var eventName = Enum.GetName(typeof (SimEvents), simEvent);
             EventModels.Add(new EventModel
             {
                 DisplayMessage = SplitCamelCase(eventName),
@@ -260,6 +320,7 @@ namespace Simconnect_test
         #endregion Initialize & Connect
 
         #region Simulator Events
+
         private void simconnect_OnRecvEvent(SimConnect sender, SIMCONNECT_RECV_EVENT recEvent)
         {
             var eventName = GetEventName(recEvent.uEventID);
@@ -286,13 +347,13 @@ namespace Simconnect_test
             Thread.Sleep(1000);
             Adm.CurrentPort.Close();*/
         }
+
         private void simconnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
-            
-            switch ((DataRequests)data.dwRequestID)
+            switch ((DataRequests) data.dwRequestID)
             {
                 case DataRequests.Request1:
-                    Struct1 s1 = (Struct1)data.dwData[0];
+                    var s1 = (Struct1) data.dwData[0];
 
                     DisplayText("Title: " + s1.title);
                     DisplayText("Lat:   " + s1.latitude);
@@ -307,7 +368,8 @@ namespace Simconnect_test
                     DisplayText("Fuel Right Wing:   " + s1.fuelRightMain);
                     DisplayText("Fuel Aux:   " + s1.fuelExternal1);
 
-                    var fuelCenter = Math.Round(s1.fuelCenter/10, MidpointRounding.AwayFromZero)*10; //Decimal.Round((decimal) s1.fuelCenter,0).ToString();
+                    var fuelCenter = Math.Round(s1.fuelCenter/10, MidpointRounding.AwayFromZero)*10;
+                        //Decimal.Round((decimal) s1.fuelCenter,0).ToString();
 
                     //TODO: should probably delegate this to another thread.
                     Acm.SendValue(fuelCenter.ToString());
@@ -343,9 +405,11 @@ namespace Simconnect_test
         #endregion Simulator Events
 
         #region From UI Panel
+
         #endregion From UI Panel
 
         #region From Windows UI
+
         // The case where the user closes the client
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -358,6 +422,8 @@ namespace Simconnect_test
             {
                 try
                 {
+                    Acm.SetComPort();
+
                     // the constructor is similar to SimConnect_Open in the native API
                     simconnect = new SimConnect("Managed Client Events", Handle, WmUserSimconnect, null, 0);
 
@@ -405,7 +471,8 @@ namespace Simconnect_test
 
         private void button2_Click(object sender, EventArgs e)
         {
-            simconnect.RequestDataOnSimObjectType(DataRequests.Request1, Definitions.Struct1, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+            simconnect.RequestDataOnSimObjectType(DataRequests.Request1, Definitions.Struct1, 0,
+                SIMCONNECT_SIMOBJECT_TYPE.USER);
             DisplayText("Request sent...");
         }
 
@@ -420,15 +487,14 @@ namespace Simconnect_test
             try
             {
                 var altitude = Convert.ToUInt32(textBox1.Text);
-                simconnect.TransmitClientEvent(SimConnect.SIMCONNECT_OBJECT_ID_USER, SimEvents.ApAltVarSetEnglish, altitude,
+                simconnect.TransmitClientEvent(SimConnect.SIMCONNECT_OBJECT_ID_USER, SimEvents.ApAltVarSetEnglish,
+                    altitude,
                     NotificationGroups.Group0, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY);
             }
             catch (Exception)
             {
             }
         }
-
-
 
         #endregion From Windows UI
 
@@ -446,7 +512,7 @@ namespace Simconnect_test
 
         public string GetEventName(Enum simEvent)
         {
-            return Enum.GetName(typeof(SimEvents), simEvent);
+            return Enum.GetName(typeof (SimEvents), simEvent);
         }
 
         public string SplitCamelCase(string s)
@@ -472,6 +538,7 @@ namespace Simconnect_test
         #endregion Methods
 
         #region Properties
+
         // User-defined win32 event
         private const int WmUserSimconnect = 0x0402;
 
@@ -490,45 +557,10 @@ namespace Simconnect_test
         {
             public string SimEventName { get; set; }
             public string SimconnectName { get; set; }
-            public string DisplayMessage { get; set; }    
+            public string DisplayMessage { get; set; }
         }
-        
+
         #endregion Properties
-
-        #region Structs
-        // This is how you declare a data structure so that 
-        // simconnect knows how to fill it/read it. 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        private struct Struct1
-        {
-            // this is how you declare a fixed size string 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-            public string title;
-            public double latitude;
-            public double longitude;
-            public double altitude;
-            public double heading;
-            public double gearPosition;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            public string atcId;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            public string DestinationAirport;
-
-            //Fuel
-            public double fuelCenter;
-            public double fuelCenter2;
-            public double fuelCenter3;
-            public double fuelLeftMain;
-            public double fuelLeftAux;
-            public double fuelLeftTip;
-            public double fuelRightMain;
-            public double fuelRightAux;
-            public double fuelRightTip;
-            public double fuelExternal1;
-            public double fuelExternal2;
-
-        }
-        #endregion Structs
 
         #region Variables
 
@@ -539,11 +571,12 @@ namespace Simconnect_test
     }
 
     #region Arduino
+
     public class ArduinoControllerMain
     {
-        public SerialPort CurrentPort;
-        public bool PortFound;
         public ArduinoControllerMain Adm;
+        public SerialPort CurrentPort;
+        public bool PortFound = false;
 
         public void SetComPort()
         {
@@ -553,11 +586,23 @@ namespace Simconnect_test
                 foreach (var port in ports)
                 {
                     CurrentPort = new SerialPort(port, 9600);
-                    if (DetectArduino())
-                    {
-                        PortFound = true;
-                    }
-                    PortFound = false;
+
+                    var buffer = new List<byte>();
+                    buffer.AddRange(Encoding.ASCII.GetBytes("handshake"));
+                    buffer.Add(Convert.ToByte(4));
+
+                    var bufferArray = buffer.ToArray();
+                    
+                    CurrentPort.Open();
+
+                    Thread t = new Thread(ReadThread);
+                    t.Start(CurrentPort);
+
+                    CurrentPort.Write(bufferArray, 0, bufferArray.Length);
+
+                    Thread.Sleep(4000);
+
+                    CurrentPort.Close();
                 }
             }
             catch (Exception e)
@@ -565,42 +610,27 @@ namespace Simconnect_test
             }
         }
 
-        private bool DetectArduino()
-        {
-            try
-            {
-                //The below setting are for the Hello handshake
-                var buffer = new byte[5];
-                buffer[0] = Convert.ToByte(16);
-                buffer[1] = Convert.ToByte(128);
-                buffer[2] = Convert.ToByte(0);
-                buffer[3] = Convert.ToByte(0);
-                buffer[4] = Convert.ToByte(4);
-                var intReturnASCII = 0;
-                var charReturnValue = (char)intReturnASCII;
-                CurrentPort.Open();
-                CurrentPort.Write(buffer, 0, 5);
-                Thread.Sleep(1000);
-                var count = CurrentPort.BytesToRead;
-                var returnMessage = "";
-                while (count > 0)
-                {
-                    intReturnASCII = CurrentPort.ReadByte();
-                    returnMessage = returnMessage + Convert.ToChar(intReturnASCII);
-                    count--;
-                }
+       
 
-                //ComPort.name = returnMessage;
-                CurrentPort.Close();
-                if (returnMessage.Contains("HELLO FROM ARDUINO"))
-                {
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception e)
+        private void ReadThread(object context)
+        {
+            SerialPort serialPort = context as SerialPort;
+
+            while (serialPort.IsOpen)
             {
-                return false;
+                try
+                {
+                    string inData = serialPort.ReadLine();
+                    if (inData.Contains("HELLO FROM ROADRUNNER")) //Ensure we have connected to the right device.
+                    {
+                        PortFound = true;
+                        Debug.WriteLine("PORT FOUND!");
+                        serialPort.Close();
+                    }
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -608,23 +638,25 @@ namespace Simconnect_test
         {
             if (!PortFound)
             {
-                //SetComPort();
+                SetComPort();
             }
+            else
+            {
+                 var buffer = new List<byte>();
+                buffer.AddRange(Encoding.ASCII.GetBytes(msg));
+                buffer.Add(Convert.ToByte(4));
 
-            var buffer = new byte[5];
-            buffer[0] = Convert.ToByte(16);
-            buffer[1] = Convert.ToByte(127);
-            buffer[2] = Convert.ToByte(4);
-            buffer[3] = Convert.ToByte(msg);
-            buffer[4] = Convert.ToByte(4);
+                var bufferArray = buffer.ToArray();
 
-            CurrentPort.Open();
-            CurrentPort.Write(buffer, 0, 5);
-            CurrentPort.Close();
+                CurrentPort.Open();
+                CurrentPort.Write(bufferArray, 0, bufferArray.Length);
+                Thread.Sleep(500);
+                CurrentPort.Close();
+            }
         }
     }
-    #endregion Arduino
 
+    #endregion Arduino
 }
 
 // End of sample

@@ -38,6 +38,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.btnTestSerial = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // buttonConnect
@@ -136,11 +137,22 @@
             this.textBox1.TabIndex = 10;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
+            // btnTestSerial
+            // 
+            this.btnTestSerial.Location = new System.Drawing.Point(67, 394);
+            this.btnTestSerial.Name = "btnTestSerial";
+            this.btnTestSerial.Size = new System.Drawing.Size(142, 23);
+            this.btnTestSerial.TabIndex = 11;
+            this.btnTestSerial.Text = "Test Serial";
+            this.btnTestSerial.UseVisualStyleBackColor = true;
+            this.btnTestSerial.Click += new System.EventHandler(this.btnTestSerial_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(488, 501);
+            this.Controls.Add(this.btnTestSerial);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
@@ -172,6 +184,7 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button btnTestSerial;
     }
 }
 
