@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.FlightSimulator.SimConnect;
 
@@ -40,14 +41,17 @@ namespace Simconnect_test
         private struct Struct1
         {
             // this is how you declare a fixed size string 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] public readonly string title;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            public readonly string title;
             public readonly double latitude;
             public readonly double longitude;
             public readonly double altitude;
             public readonly double heading;
             public readonly double gearPosition;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public readonly string atcId;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public readonly string DestinationAirport;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public readonly string atcId;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public readonly string DestinationAirport;
 
             //Fuel
             public readonly double fuelCenter;
@@ -231,11 +235,11 @@ namespace Simconnect_test
 
                 #region Event Subscriptions
 
-                foreach (var simEvent in Enum.GetValues(typeof (SimEvents)))
+                foreach (var simEvent in Enum.GetValues(typeof(SimEvents)))
                 {
-                    var eventName = GetEventName((Enum) simEvent);
+                    var eventName = GetEventName((Enum)simEvent);
                     var simconnectEventName = GetSimconnectNameFormat(eventName);
-                    SubscribeToEvent((Enum) simEvent, simconnectEventName);
+                    SubscribeToEvent((Enum)simEvent, simconnectEventName);
                 }
 
                 #endregion Event Subscriptions
@@ -308,7 +312,7 @@ namespace Simconnect_test
             simconnect.AddClientEventToNotificationGroup(NotificationGroups.Group0, simEvent, false);
 
             //Now add to EventModels
-            var eventName = Enum.GetName(typeof (SimEvents), simEvent);
+            var eventName = Enum.GetName(typeof(SimEvents), simEvent);
             EventModels.Add(new EventModel
             {
                 DisplayMessage = SplitCamelCase(eventName),
@@ -326,34 +330,15 @@ namespace Simconnect_test
             var eventName = GetEventName(recEvent.uEventID);
             var simEvent = GetEventModelByName(eventName);
             DisplayText(simEvent.DisplayMessage);
-
-/*
-            var setVal = LandingLights ? 255 : 254;
-
-            if (!Adm.PortFound)
-            {
-                // adm.SetComPort();
-            }
-
-            var buffer = new byte[5];
-            buffer[0] = Convert.ToByte(16);
-            buffer[1] = Convert.ToByte(127);
-            buffer[2] = Convert.ToByte(4);
-            buffer[3] = Convert.ToByte(setVal);
-            buffer[4] = Convert.ToByte(4);
-
-            Adm.CurrentPort.Open();
-            Adm.CurrentPort.Write(buffer, 0, 5);
-            Thread.Sleep(1000);
-            Adm.CurrentPort.Close();*/
+            
         }
 
         private void simconnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
-            switch ((DataRequests) data.dwRequestID)
+            switch ((DataRequests)data.dwRequestID)
             {
                 case DataRequests.Request1:
-                    var s1 = (Struct1) data.dwData[0];
+                    var s1 = (Struct1)data.dwData[0];
 
                     DisplayText("Title: " + s1.title);
                     DisplayText("Lat:   " + s1.latitude);
@@ -368,11 +353,12 @@ namespace Simconnect_test
                     DisplayText("Fuel Right Wing:   " + s1.fuelRightMain);
                     DisplayText("Fuel Aux:   " + s1.fuelExternal1);
 
-                    var fuelCenter = Math.Round(s1.fuelCenter/10, MidpointRounding.AwayFromZero)*10;
-                        //Decimal.Round((decimal) s1.fuelCenter,0).ToString();
+                    var fuelCenter = (int) s1.fuelCenter;
 
-                    //TODO: should probably delegate this to another thread.
-                    Acm.SendValue(fuelCenter.ToString());
+                    //Debug.WriteLine(fuelCenter.ToString());
+                    
+                    var t = new Task(() => Acm.SendValue(fuelCenter.ToString()));
+                    t.Start();
 
                     //Refresh variables
                     ReadVariables();
@@ -507,12 +493,12 @@ namespace Simconnect_test
 
         public string GetEventName(uint simEvent)
         {
-            return Enum.GetName(typeof (SimEvents), simEvent);
+            return Enum.GetName(typeof(SimEvents), simEvent);
         }
 
         public string GetEventName(Enum simEvent)
         {
-            return Enum.GetName(typeof (SimEvents), simEvent);
+            return Enum.GetName(typeof(SimEvents), simEvent);
         }
 
         public string SplitCamelCase(string s)
@@ -592,27 +578,21 @@ namespace Simconnect_test
                     buffer.Add(Convert.ToByte(4));
 
                     var bufferArray = buffer.ToArray();
-                    
+
                     CurrentPort.Open();
 
-                    Thread t = new Thread(ReadThread);
+                    var t = new Thread(Handshake);
                     t.Start(CurrentPort);
 
                     CurrentPort.Write(bufferArray, 0, bufferArray.Length);
-
-                    Thread.Sleep(4000);
-
-                    CurrentPort.Close();
                 }
             }
             catch (Exception e)
             {
             }
         }
-
-       
-
-        private void ReadThread(object context)
+        
+        private void Handshake(object context)
         {
             SerialPort serialPort = context as SerialPort;
 
@@ -624,12 +604,40 @@ namespace Simconnect_test
                     if (inData.Contains("HELLO FROM ROADRUNNER")) //Ensure we have connected to the right device.
                     {
                         PortFound = true;
-                        Debug.WriteLine("PORT FOUND!");
+                        Debug.WriteLine("PORT FOUND: " + serialPort.PortName);
+                        serialPort.Close();
+                    }
+                    else
+                    {
+                        PortFound = false;
                         serialPort.Close();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    var x = ex.Message;
+                }
+            }
+        }
+
+        private void ProcessMessage(object context)
+        {
+            SerialPort serialPort = context as SerialPort;
+
+            while (serialPort.IsOpen)
+            {
+                try
+                {
+                    string inData = serialPort.ReadLine();
+                    if (inData.Contains("MESSAGE RECEIVED"))
+                    {
+                        Debug.WriteLine(inData);
+                    }
+                    serialPort.Close();
+                }
+                catch (Exception ex)
+                {
+                    var x = ex.Message;
                 }
             }
         }
@@ -640,18 +648,25 @@ namespace Simconnect_test
             {
                 SetComPort();
             }
-            else
+            else if(!CurrentPort.IsOpen)
             {
-                 var buffer = new List<byte>();
-                buffer.AddRange(Encoding.ASCII.GetBytes(msg));
-                buffer.Add(Convert.ToByte(4));
+                try
+                {
+                    CurrentPort.Open();
 
-                var bufferArray = buffer.ToArray();
+                    var buffer = new List<byte>();
+                    buffer.AddRange(Encoding.ASCII.GetBytes(msg));
+                    buffer.Add(Convert.ToByte(4));
 
-                CurrentPort.Open();
-                CurrentPort.Write(bufferArray, 0, bufferArray.Length);
-                Thread.Sleep(500);
-                CurrentPort.Close();
+                    var bufferArray = buffer.ToArray();
+                    
+                    var t = new Thread(ProcessMessage);
+                    t.Start(CurrentPort);
+                    CurrentPort.Write(bufferArray, 0, bufferArray.Length);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
     }

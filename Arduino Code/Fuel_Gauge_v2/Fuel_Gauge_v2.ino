@@ -47,15 +47,13 @@ void setup() {
   pinMode(p10, OUTPUT);
 
   Serial.begin(9600);
-  digitalWrite(p1, HIGH);//
-  delay(250);//
-  digitalWrite(p1, LOW);//
-  delay(250);//
+
+  BlinkAll(1);
+
 }
 
 //Main Loop
 void loop() {
-
   if (Serial.available() > 0)
   {
     String msg = Serial.readString();
@@ -64,70 +62,93 @@ void loop() {
     //Handshake
     if (msg == "handshake") {
       Serial.print("HELLO FROM ROADRUNNER\n");
+      BlinkAll(3);
     } else {
       int fuelLevel =  msg.toInt();
 
-      if (fuelLevel > 90) {
-        digitalWrite(p10, HIGH);
-      } else {
-        digitalWrite(p10, LOW);
-      }
+    ProcessFuel(p10, fuelLevel, 90);
+    ProcessFuel(p9, fuelLevel, 80);
+    ProcessFuel(p8, fuelLevel, 70);
+    ProcessFuel(p7, fuelLevel, 60);
+    ProcessFuel(p6, fuelLevel, 50);
+    ProcessFuel(p5, fuelLevel, 40);
+    ProcessFuel(p4, fuelLevel, 30);
+    ProcessFuel(p3, fuelLevel, 20);
+    ProcessFuel(p2, fuelLevel, 10);
+    ProcessFuel(p1, fuelLevel, 0);
 
-      if (fuelLevel > 80) {
-        digitalWrite(p9, HIGH);
-      } else {
-        digitalWrite(p9, LOW);
-      }
-
-      if (fuelLevel > 70) {
-        digitalWrite(p8, HIGH);
-      } else {
-        digitalWrite(p8, LOW);
-      }
-
-      if (fuelLevel > 60) {
-        digitalWrite(p7, HIGH);
-      } else {
-        digitalWrite(p7, LOW);
-      }
-
-      if (fuelLevel > 50) {
-        digitalWrite(p6, HIGH);
-      } else {
-        digitalWrite(p6, LOW);
-      }
-
-      if (fuelLevel > 40) {
-        digitalWrite(p5, HIGH);
-      } else {
-        digitalWrite(p5, LOW);
-      }
-
-      if (fuelLevel > 30) {
-        digitalWrite(p4, HIGH);
-      } else {
-        digitalWrite(p4, LOW);
-      }
-
-      if (fuelLevel > 20) {
-        digitalWrite(p3, HIGH);
-      } else {
-        digitalWrite(p3, LOW);
-      }
-
-      if (fuelLevel > 10) {
-        digitalWrite(p2, HIGH);
-      } else {
-        digitalWrite(p2, LOW);
-      }
-
-      if (fuelLevel > 0) {
-        digitalWrite(p1, HIGH);
-      } else {
-        digitalWrite(p1, LOW);
-      }
+//      if (fuelLevel > 0) {
+//        digitalWrite(p1, HIGH);
+//      } else {
+//        digitalWrite(p1, LOW);
+//      }
 
       Serial.print("MESSAGE RECEIVED\n");
     }
+  }
+}
+
+void ProcessFuel(int led, int fuelLevel, int benchmark){
+  if (fuelLevel > benchmark) {
+        if (fuelLevel > (benchmark + 10)) {
+          digitalWrite(led, HIGH);
+        } else {
+          int modulo = fuelLevel % benchmark;
+          if (modulo >= 5) {
+            digitalWrite(led, HIGH);
+          } else {
+            FadeLed(led);
+          }
+        }
+      } else {
+        digitalWrite(led, LOW);
+      }
+  }
+
+void BlinkAll(int num) {
+
+  for (int count = 0; count <= num; count++) {
+    digitalWrite(p1, HIGH);
+    digitalWrite(p2, HIGH);
+    digitalWrite(p3, HIGH);
+    digitalWrite(p4, HIGH);
+    digitalWrite(p5, HIGH);
+    digitalWrite(p6, HIGH);
+    digitalWrite(p7, HIGH);
+    digitalWrite(p8, HIGH);
+    digitalWrite(p9, HIGH);
+    digitalWrite(p10, HIGH);
+    delay(250);
+    digitalWrite(p1, LOW);
+    digitalWrite(p2, LOW);
+    digitalWrite(p3, LOW);
+    digitalWrite(p4, LOW);
+    digitalWrite(p5, LOW);
+    digitalWrite(p6, LOW);
+    digitalWrite(p7, LOW);
+    digitalWrite(p8, LOW);
+    digitalWrite(p9, LOW);
+    digitalWrite(p10, LOW);
+    delay(250);
+  }
+
+}
+
+void FadeLed(int ledPin) {
+
+  for (int fadeValue = 0 ; fadeValue <= 255; fadeValue += 10) {
+    // sets the value (range from 0 to 255):
+    analogWrite(ledPin, fadeValue);
+    // wait for 30 milliseconds to see the dimming effect
+    delay(30);
+  }
+
+  // fade out from max to min in increments of 5 points:
+  for (int fadeValue = 255 ; fadeValue >= 0; fadeValue -= 10) {
+    // sets the value (range from 0 to 255):
+    analogWrite(ledPin, fadeValue);
+    // wait for 30 milliseconds to see the dimming effect
+    delay(30);
+
   }
 }

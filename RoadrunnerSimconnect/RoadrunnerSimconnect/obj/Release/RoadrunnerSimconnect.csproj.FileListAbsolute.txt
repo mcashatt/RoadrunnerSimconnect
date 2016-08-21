@@ -1,0 +1,9 @@
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Release\Simconnect test.exe.config
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Release\Simconnect test.exe
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Release\Simconnect test.pdb
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\bin\Release\Microsoft.FlightSimulator.SimConnect.dll
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Release\Simconnect_test.Form1.resources
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Release\Simconnect_test.Properties.Resources.resources
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Release\RoadrunnerSimconnect.csproj.GenerateResource.Cache
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Release\Simconnect test.exe
+D:\Visual Studio\Projects\Personal\RoadrunnerSimconnect\RoadrunnerSimconnect\RoadrunnerSimconnect\obj\Release\Simconnect test.pdb
