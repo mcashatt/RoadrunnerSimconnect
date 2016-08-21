@@ -46,7 +46,7 @@ void setup() {
   pinMode(p9, OUTPUT);
   pinMode(p10, OUTPUT);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   BlinkAll(1);
 
@@ -66,44 +66,38 @@ void loop() {
     } else {
       int fuelLevel =  msg.toInt();
 
-    ProcessFuel(p10, fuelLevel, 90);
-    ProcessFuel(p9, fuelLevel, 80);
-    ProcessFuel(p8, fuelLevel, 70);
-    ProcessFuel(p7, fuelLevel, 60);
-    ProcessFuel(p6, fuelLevel, 50);
-    ProcessFuel(p5, fuelLevel, 40);
-    ProcessFuel(p4, fuelLevel, 30);
-    ProcessFuel(p3, fuelLevel, 20);
-    ProcessFuel(p2, fuelLevel, 10);
-    ProcessFuel(p1, fuelLevel, 0);
-
-//      if (fuelLevel > 0) {
-//        digitalWrite(p1, HIGH);
-//      } else {
-//        digitalWrite(p1, LOW);
-//      }
+      ProcessFuel(p10, fuelLevel, 90);
+      ProcessFuel(p9, fuelLevel, 80);
+      ProcessFuel(p8, fuelLevel, 70);
+      ProcessFuel(p7, fuelLevel, 60);
+      ProcessFuel(p6, fuelLevel, 50);
+      ProcessFuel(p5, fuelLevel, 40);
+      ProcessFuel(p4, fuelLevel, 30);
+      ProcessFuel(p3, fuelLevel, 20);
+      ProcessFuel(p2, fuelLevel, 10);
+      ProcessFuel(p1, fuelLevel, 0);
 
       Serial.print("MESSAGE RECEIVED\n");
     }
   }
 }
 
-void ProcessFuel(int led, int fuelLevel, int benchmark){
+void ProcessFuel(int led, int fuelLevel, int benchmark) {
   if (fuelLevel > benchmark) {
-        if (fuelLevel > (benchmark + 10)) {
-          digitalWrite(led, HIGH);
-        } else {
-          int modulo = fuelLevel % benchmark;
-          if (modulo >= 5) {
-            digitalWrite(led, HIGH);
-          } else {
-            FadeLed(led);
-          }
-        }
+    if (fuelLevel > (benchmark + 10)) {
+      digitalWrite(led, HIGH);
+    } else {
+      int modulo = fuelLevel % benchmark;
+      if (modulo >= 5) {
+        digitalWrite(led, HIGH);
       } else {
-        digitalWrite(led, LOW);
+        FadeLed(led);
       }
+    }
+  } else {
+    digitalWrite(led, LOW);
   }
+}
 
 void BlinkAll(int num) {
 
@@ -136,19 +130,18 @@ void BlinkAll(int num) {
 
 void FadeLed(int ledPin) {
 
-  for (int fadeValue = 0 ; fadeValue <= 255; fadeValue += 10) {
-    // sets the value (range from 0 to 255):
-    analogWrite(ledPin, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
+  for (int fadeValue = 0 ; fadeValue <= 1000; fadeValue += 1) {
+    digitalWrite(ledPin, HIGH);
+    delayMicroseconds(fadeValue);
+    digitalWrite(ledPin, LOW);
+    delayMicroseconds(1000 - fadeValue);
   }
 
   // fade out from max to min in increments of 5 points:
-  for (int fadeValue = 255 ; fadeValue >= 0; fadeValue -= 10) {
-    // sets the value (range from 0 to 255):
-    analogWrite(ledPin, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
-
+  for (int fadeValue = 1000 ; fadeValue >= 0; fadeValue -= 1) {
+    digitalWrite(ledPin, HIGH);
+    delayMicroseconds(fadeValue);
+    digitalWrite(ledPin, LOW);
+    delayMicroseconds(1000 - fadeValue);
   }
 }

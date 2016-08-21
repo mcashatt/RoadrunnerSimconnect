@@ -571,20 +571,28 @@ namespace Simconnect_test
                 var ports = SerialPort.GetPortNames();
                 foreach (var port in ports)
                 {
-                    CurrentPort = new SerialPort(port, 9600);
+                    //CurrentPort = new SerialPort(port, 9600);
 
-                    var buffer = new List<byte>();
-                    buffer.AddRange(Encoding.ASCII.GetBytes("handshake"));
-                    buffer.Add(Convert.ToByte(4));
+                    if (!PortFound)
+                    {
+                        CurrentPort = new SerialPort(port, 115200);
 
-                    var bufferArray = buffer.ToArray();
+                        var buffer = new List<byte>();
+                        buffer.AddRange(Encoding.ASCII.GetBytes("handshake"));
+                        buffer.Add(Convert.ToByte(4));
 
-                    CurrentPort.Open();
+                        var bufferArray = buffer.ToArray();
 
-                    var t = new Thread(Handshake);
-                    t.Start(CurrentPort);
+                        CurrentPort.Open();
 
-                    CurrentPort.Write(bufferArray, 0, bufferArray.Length);
+                        var t = new Thread(Handshake);
+                        t.Start(CurrentPort);
+
+                        CurrentPort.Write(bufferArray, 0, bufferArray.Length);
+
+                        Thread.Sleep(1000);
+                    }
+                    
                 }
             }
             catch (Exception e)
@@ -600,22 +608,27 @@ namespace Simconnect_test
             {
                 try
                 {
-                    string inData = serialPort.ReadLine();
-                    if (inData.Contains("HELLO FROM ROADRUNNER")) //Ensure we have connected to the right device.
+                    if(serialPort.BytesToRead > 0)
                     {
-                        PortFound = true;
-                        Debug.WriteLine("PORT FOUND: " + serialPort.PortName);
-                        serialPort.Close();
-                    }
-                    else
-                    {
-                        PortFound = false;
-                        serialPort.Close();
+                        string inData = serialPort.ReadLine();
+                        if (inData.Contains("HELLO FROM ROADRUNNER")) //Ensure we have connected to the right device.
+                        {
+                            PortFound = true;
+                            Debug.WriteLine("PORT FOUND: " + serialPort.PortName);
+                            serialPort.Close();
+                        }
+                        else
+                        {
+                            PortFound = false;
+                            serialPort.Close();  
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     var x = ex.Message;
+                    PortFound = false;
+                    serialPort.Close();
                 }
             }
         }
@@ -652,6 +665,8 @@ namespace Simconnect_test
             {
                 try
                 {
+                    Debug.WriteLine("SENDING MESSAGE ON: " + CurrentPort.PortName);
+
                     CurrentPort.Open();
 
                     var buffer = new List<byte>();
@@ -664,8 +679,9 @@ namespace Simconnect_test
                     t.Start(CurrentPort);
                     CurrentPort.Write(bufferArray, 0, bufferArray.Length);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    var x = ex.Message;
                 }
             }
         }
